@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Tic Tac Toe</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to top, #023f70 25%, #171717 75%);
+            color: white;
+            overflow: hidden;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+        }
+
+        .hero {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 10px 20px;
+            background-color: transparent;
+        }
+
+        .hero h1 {
+            font-size: 36px;
+            margin: 0;
+        }
+
+        .hamburger {
+            cursor: pointer;
+            background-color: #1e88e5;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            margin-right: 20px;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .hamburger:active {
+            transform: scale(0.95);
+            background-color: #1565c0;
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 80%;
+            height: 100vh;
+            background-color: #171717;
+            padding: 20px;
+            transition: right 0.3s ease;
+            z-index: 10;
+            border-radius: 0 20px 20px 0;
+        }
+
+        .settings-panel input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #ccc;
+            border-radius: 20px;
+            background: none;
+            color: white;
+            font-size: 18px;
+        }
+
+        .settings-panel button {
+            width: 100%;
+            padding: 10px;
+            background-color: #1e88e5;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .settings-panel button:active {
+            transform: scale(0.95);
+            background-color: #1565c0;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 80px);
+            grid-gap: 10px;
+            margin: 20px auto;
+        }
+
+        .cell {
+            width: 80px;
+            height: 80px;
+            background-color: #1e88e5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 36px;
+            cursor: pointer;
+            border-radius: 30%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            color: white;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .cell:active {
+            transform: scale(0.95);
+            background-color: #1565c0;
+        }
+
+        .scoreboard {
+            text-align: center;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            padding-top: 50px;
+        }
+
+        .players {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            width: 100%;
+        }
+
+        .player {
+            text-align: center;
+            cursor: pointer;
+            font-size: 24px;
+            transition: color 0.2s;
+        }
+
+        .player.active {
+            color: #ffeb3b;
+        }
+
+        button, .cell {
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <audio id="bgMusic" src="https://rildi.sunproxy.net/file/TXJDQWF2cHNyazNXdnlpSDNwZDJTajR5MTA5c0R6QW9qYVpMZFMzMXNDT2xYYXNhVXNZSWNTK1RYVG1GOVQrWng3cGlXZWk5Yis2WWJqaGVmMHo1MkdhajV4aXBkMmVBMER2cGhHOXpaTE09/C418_-_Moog_City_(Hydr0.org).mp3" loop></audio>
+    <div class="hero">
+        <h1>TTT</h1>
+        <button class="hamburger" id="hamburgerButton" onclick="toggleSettings()">&#9776;</button>
+    </div>
+    <div class="settings-panel" id="settingsPanel">
+        <h2>Настройки</h2>
+        <input type="text" id="bgColor" placeholder="Цвет фона (HEX)" oninput="updateColors()">
+        <input type="text" id="textColor" placeholder="Цвет текста (HEX)" oninput="updateColors()">
+        <input type="text" id="accentColor" placeholder="Цвет акцента (HEX)" oninput="updateColors()">
+        <input type="text" id="buttonBgColor" placeholder="Цвет кнопок (HEX)" oninput="updateColors()">
+        <input type="text" id="settingsBgColor" placeholder="Цвет фона настроек (HEX)" oninput="updateColors()">
+        <input type="text" id="settingsAccentColor" placeholder="Цвет акцента настроек (HEX)" oninput="updateColors()">
+        <button id="musicButton" onclick="toggleMusic()">Включить Музыку</button>
+        <button onclick="toggleSettings()">Закрыть</button>
+    </div>
+    <div class="scoreboard">
+        <div class="players">
+            <div class="player" id="player1" onclick="setNickname(1)">Игрок 1: <span id="player1Score">0</span></div>
+            <div class="player" id="player2" onclick="setNickname(2)">Игрок 2: <span id="player2Score">0</span></div>
+        </div>
+    </div>
+    <div class="game-board">
+        <div class="cell" onclick="makeMove(this, 0)"></div>
+        <div class="cell" onclick="makeMove(this, 1)"></div>
+        <div class="cell" onclick="makeMove(this, 2)"></div>
+        <div class="cell" onclick="makeMove(this, 3)"></div>
+        <div class="cell" onclick="makeMove(this, 4)"></div>
+        <div class="cell" onclick="makeMove(this, 5)"></div>
+        <div class="cell" onclick="makeMove(this, 6)"></div>
+        <div class="cell" onclick="makeMove(this, 7)"></div>
+        <div class="cell" onclick="makeMove(this, 8)"></div>
+    </div>
+    <script>
+        let currentPlayer = '✕';
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let player1Score = 0;
+        let player2Score = 0;
+        let isMusicPlaying = false;
+
+        document.getElementById('bgMusic').volume = 0.2;
+
+        function toggleSettings() {
+            const settingsPanel = document.getElementById('settingsPanel');
+            const hamburgerButton = document.getElementById('hamburgerButton');
+            if (settingsPanel.style.right === '0%') {
+                settingsPanel.style.right = '-100%';
+                hamburgerButton.style.transform = 'rotate(0deg)';
+            } else {
+                settingsPanel.style.right = '0%';
+                hamburgerButton.style.transform = 'rotate(90deg)';
+            }
+        }
+
+        function toggleMusic() {
+            const bgMusic = document.getElementById('bgMusic');
+            const musicButton = document.getElementById('musicButton');
+            if (isMusicPlaying) {
+                bgMusic.pause();
+                musicButton.textContent = "Включить Музыку";
+            } else {
+                bgMusic.play();
+                musicButton.textContent = "Выключить Музыку";
+            }
+            isMusicPlaying = !isMusicPlaying;
+        }
+
+        function makeMove(cell, index) {
+            if (board[index] === '') {
+                board[index] = currentPlayer;
+                cell.textContent = currentPlayer;
+                checkWinner();
+                currentPlayer = currentPlayer === '✕' ? '◯' : '✕';
+                updateActivePlayer();
+            }
+        }
+        function checkWinner() {
+            const winningCombinations = [
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
+                [0, 4, 8],
+                [2, 4, 6],
+            ];
+            for (const combination of winningCombinations) {
+                const [a, b, c] = combination;
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    if (board[a] === '✕') {
+                        player1Score++;
+                        document.getElementById('player1Score').textContent = player1Score;
+                    } else {
+                        player2Score++;
+                        document.getElementById('player2Score').textContent = player2Score;
+                    }
+                    resetBoard();
+                    return;
+                }
+            }
+            if (board.every(cell => cell !== '')) {
+                resetBoard();
+            }
+        }
+
+        function resetBoard() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.textContent = '';
+            });
+            currentPlayer = '✕';
+            updateActivePlayer();
+        }
+
+        function updateActivePlayer() {
+            const players = document.querySelectorAll('.player');
+            players.forEach(player => {
+                player.classList.remove('active');
+            });
+            const activePlayerElement = currentPlayer === '✕' ? document.getElementById('player1') : document.getElementById('player2');
+            activePlayerElement.classList.add('active');
+        }
+
+        function setNickname(playerNumber) {
+            const nickname = prompt(`Введите никнейм для Игрока ${playerNumber}:`);
+            if (nickname) {
+                document.getElementById(`player${playerNumber}`).childNodes[0].textContent = nickname + ': ';
+            }
+        }
+
+        function updateColors() {
+            const bgColor = document.getElementById('bgColor').value || '#171717';
+            const textColor = document.getElementById('textColor').value || '#ffffff';
+            const accentColor = document.getElementById('accentColor').value || '#1e88e5';
+            const buttonBgColor = document.getElementById('buttonBgColor').value || '#1e88e5';
+            const settingsBgColor = document.getElementById('settingsBgColor').value || '#171717';
+            const settingsAccentColor = document.getElementById('settingsAccentColor').value || '#1e88e5';
+
+            document.body.style.background = `linear-gradient(to top, ${accentColor} 25%, ${bgColor} 75%)`;
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.style.backgroundColor = buttonBgColor;
+            });
+            document.querySelectorAll('input[type="text"]').forEach(input => {
+                input.style.borderColor = textColor;
+                input.style.color = textColor;
+            });
+            document.querySelectorAll('button').forEach(button => {
+                button.style.backgroundColor = buttonBgColor;
+                button.style.color = textColor;
+            });
+            document.getElementById('settingsPanel').style.backgroundColor = settingsBgColor;
+        }
+    </script>
+</body>
+</html>
